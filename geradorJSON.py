@@ -1,25 +1,16 @@
-from flask import Flask, request
+from flask import Flask
 
-
-import json
 import random
 
 
 app = Flask( __name__ )
-"""
-dao = DAO()
-proxy = ProxySV()
-recognizer = SighthoundRecognizer( "recognition/sighthoundkey.txt" )
-manager = SRAManager( dao, recognizer, proxy )
-print( "SRA init is done!" )
-"""
 
 
 @app.route('/')
 def index():
     return "Welcome to the Motor Vehicle Recognition Service"
 
-@app.route('/GeradorJson', methods=['GET']) #POST?
+@app.route('/GeradorJson', methods=['GET'])
 def GeradorJson():
     
     data = {
@@ -39,9 +30,9 @@ def GeradorJson():
             "noise_levels": {
                 "LAeq":[],
                 "LAeq_Lin":[],
+                "LAFmax":[],
                 "LAFmax_Lin":[],
-                "LAFmax_Lin":[],
-                "LFmax_Lin":[],	
+                "LFmax":[],	
                 "LFmax_Lin":[],
                 "LAFmin":[],
                 "LAFmin_Lin":[],
@@ -54,7 +45,7 @@ def GeradorJson():
                 "LCPeak":[],
                 "LCPeak_Lin":[],	
                 "LAE":[],
-                "LAE_Lin ":[],
+                "LAE_Lin":[],
                 "SEL":[],
                 "SEL_Lin":[],
                 "Impul":[],
@@ -115,46 +106,51 @@ def GeradorJson():
             }
         }
     }
-
-    r = random.randint(0,10)
-    if (r >= 5) :
-        for i in range(1,5):
-            data["DataRecord"]["weather"]["Temperature"].append(30 + 
-                            random.randint(0, 20))
-    else:
-        for i in range(1,5):
-            data["DataRecord"]["weather"]["Temperature"].append(40 +
-                                random.randint(0, 20))
+    
+    data["DataRecord"]["STATION"]["ID"] = random.randint(0, 1000000)
+    data["DataRecord"]["STATION"]["Geolocation"] = random.randint(0, 1000000) / 10
+    data["DataRecord"]["STATION"]["Direction"] = random.randint(0, 10000) / 10
+    data["DataRecord"]["STATION"]["MicSensitivity"] = random.randint(0, 10000) / 10
+    data["DataRecord"]["STATION"]["Height"] = random.randint(0, 10000) / 10
+    data["DataRecord"]["STATION"]["Orientation"]["Azimuth"] = random.randint(0, 10000) / 10
+    data["DataRecord"]["STATION"]["Orientation"]["Elevation"] = random.randint(0, 10000) / 10
+    
+    data["DataRecord"]["timeStamp"] = random.randint(0,10000) / 10
+   
+    data["DataRecord"]["noise_levels"]["LAeq"].append(random.randint(350, 750) / 10)
+    
+    data["DataRecord"]["noise_levels"]["LAFmax"].append(random.randint(1000, 1300) / 10)
+    
+    data["DataRecord"]["noise_levels"]["LFmax"].append(random.randint(1000, 1500) / 10)
+    
+    data["DataRecord"]["noise_levels"]["LAFmin"].append(random.randint(200, 600) / 10)
+    
+    data["DataRecord"]["noise_levels"]["LASmax"].append(random.randint(1000, 1400) / 10)
+    
+    data["DataRecord"]["noise_levels"]["LASmin"].append(random.randint(600, 1000) / 10)
+    
+    data["DataRecord"]["noise_levels"]["LFmin"].append(random.randint(500, 1000) / 10)
+    
+    data["DataRecord"]["noise_levels"]["LCPeak"].append(random.randint(100, 1700) / 10)
+    
+    data["DataRecord"]["noise_levels"]["LAE"].append(random.randint(300, 1100) / 10)
+    
+    data["DataRecord"]["noise_levels"]["SEL"].append(random.randint(400, 1100) / 10)
+    
+    data["DataRecord"]["noise_levels"]["Impul"].append(random.randint(0, 10) / 10)
+    data["DataRecord"]["noise_levels"]["Tonal"].append(random.randint(0, 10) / 10)
+    data["DataRecord"]["noise_levels"]["LowFreq"].append(random.randint(0, 10) / 10)
+   
+    data["DataRecord"]["weather"]["Temperature"].append(random.randint(0, 70))
             
-    
-    data["DataRecord"]["noise_levels"]["Impul"].append(r / 10)
-    
-    r1 = random.randint(0,10) / 10
-    data["DataRecord"]["noise_levels"]["Tonal"].append(r1)    
+    data["DataRecord"]["weather"]["AirSpeed"].append(random.randint(0, 70))
+    data["DataRecord"]["weather"]["AirDirection"].append(random.randint(0, 70))
+     
        
     print("Pedido recebido!")    
     return data
 
 
-"""
-@app.route('/objects')
-def getAllObjects():
-    return allData
-"""
-
-"""
-r = random.randint(0,10)
-if (r >= 9) :
-    data = {
-        "ruido[db]" : 120
-    }
-    return data
-else:
-    data = {
-        "ruido[db]" : 40
-    }
-    return data
-"""
 
 
 """
@@ -191,143 +187,5 @@ DataRecord – conjunto dados obtidos num intervalo de tempo, programável pelo 
 
 """
 
-
-
-"""
-@app.route('/authenticate', methods=['POST'])
-def authenticate():
-    print( "sra#authenticate() - begin", file=sys.stderr, flush=True )
-    
-    # params
-    username = request.json['username']
-    password = request.json['password']
-        
-    print( f"username:{username}", file=sys.stderr, flush=True )
-    print( f"password:{password}", file=sys.stderr, flush=True )
-    
-    response = manager.authenticateUser(username, password)
-    
-    print( "sra#authenticate() - end", file=sys.stderr, flush=True )
-    
-    return response
-
-
-@app.route('/validateVehicle', methods=['POST'])
-def validateVehicle():
-    print( "sra#validateVehicle() - begin", file=sys.stderr, flush=True )
-    
-    # params
-    userToken = request.json['userToken']
-    vehicle = request.json['vehicle']
-    detail = request.json['detail']
-
-    # check permission
-    permission = manager.checkPermission(userToken)
-    
-    if ( "error" in permission ):
-        return permission
-
-    response = manager.validateVehicle(vehicle, detail)
-    
-    print( "sra#validateVehicle() - end", file=sys.stderr, flush=True )
-
-    return response
-
-
-@app.route('/extractVehicle', methods=['POST'])
-def extractVehicle():
-    print( "sra#extractVehicle() - begin", file=sys.stderr, flush=True )
-    
-    # params
-    userToken = request.json['userToken']
-    vehicleImage = request.json['vehicleImage']
-    
-    print( f"extractVehicle: vehicleImage: {vehicleImage}", file=sys.stderr, flush=True )
-    
-    # check permission
-    permission = manager.checkPermission(userToken)
-    if ( "error" in permission ):
-        return permission
-
-    # extract features
-    vehicle = manager.extractFeatures(vehicleImage)
-    if( "error" in vehicle ):
-        return vehicle
-
-    # Get processed image
-    visuals = ( vehicle[ 'vehicle_coordinates' ], vehicle[ 'licenseplate_coordinates' ] )
-    img_processed = getImageProcessed(vehicleImage, visuals)
-    response = {
-            "image_processed": img_processed,
-            "vehicle": vehicle
-    }
-    
-    print( "sra#extractVehicle() - end", file=sys.stderr, flush=True )
-    
-    return response
-
-
-@app.route('/extractAndValidateVehicle', methods=['POST'])
-def extractAndValidateVehicle():
-    print( "sra#extractAndValidateVehicle() - begin", file=sys.stderr, flush=True )
-    
-    # params
-    userToken = base64.b64decode(request.json['userToken'])
-    
-    print( f"UserToken Type: {type(userToken)}", file=sys.stderr, flush=True )
-    
-    vehicleImage = request.json[ 'vehicleImage' ]
-    detail = request.json[ 'detail' ]
-
-    # check permission
-    print( "Going to check permissions...", file=sys.stderr, flush=True )
-    permission = manager.checkPermission( userToken )
-    if ( "error" in permission ):
-        return permission
-
-    # extract features
-    print( "Going to extract features...", file=sys.stderr, flush=True )
-    vehicle = manager.extractFeatures(vehicleImage)
-    if( "error" in vehicle ):
-        return vehicle
-
-    # Get processed image
-    print( "Getting processed image...", file=sys.stderr, flush=True )
-    visuals = ( vehicle['vehicle_coordinates'], vehicle['licenseplate_coordinates'] )
-    
-    img_processed = getImageProcessed(vehicleImage, visuals)
-    
-    print( "Got an image...", file=sys.stderr, flush=True )
-    
-    response = {}
-    response[ "image_processed" ] = img_processed
-
-    vehicle.pop( "vehicle_coordinates", None )
-    vehicle.pop( "licenseplate_coordinates", None )
-    
-    print( "Going to validate vehicle...", file=sys.stderr, flush=True )
-    
-    response[ "validation" ] = manager.validateVehicle( vehicle, detail )
-
-    print( "Vehicle validated", file=sys.stderr, flush=True )
-
-    # add vehicle features
-    response["vehicle"] = vehicle
-    
-    print( "sra#extractAndValidateVehicle() - end", file=sys.stderr, flush=True )
-    
-    return response
-
-
-def getImageProcessed(vehicleImage, visuals):
-    img_str = base64.b64decode(vehicleImage)
-    nparr = np.fromstring(img_str, np.uint8)
-    im_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    visualizer = VehicleVisualizer(im_np, visuals[0], visuals[1])
-    visualizer.buildVisualImage()
-    img_processed = base64.b64encode(visualizer.getImageBytes()).decode()
-    return img_processed
-
-"""
 if __name__ == '__main__':
     app.run( host='0.0.0.0', port=4002, debug=True )
